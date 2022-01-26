@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 const { registrationValidation, loginValidation } = require('../validation');
 
 //registering user
@@ -43,24 +44,26 @@ router.post('/login', async (req, res) => {
 	const validPass = await bcrypt.compare(req.body.password, user.password);
 	if (!validPass) return res.status(400).send('invalid passsword');
 
-	res.send('Logged in !');
+	//creating and assigning token
+	const token = jwt.sign({ _id: user._id }, process.env.TOKEN);
+	res.header('auth-token', token).send(token);
 });
 
-// router.get('/register', async (req, res) => {
-// 	try {
-// 		const users = await User.find();
-// 		res.json(users);
-// 	} catch (error) {
-// 		res.json(error);
-// 	}
-// });
+router.get('/register', async (req, res) => {
+	try {
+		const users = await User.find();
+		res.json(users);
+	} catch (error) {
+		res.json(error);
+	}
+});
 
-// router.delete('/register/:userID', async (req, res) => {
-// 	try {
-// 		const deletedUser = await User.deleteOne({ _id: req.params.userID });
-// 		res.json(deletedUser);
-// 	} catch (error) {
-// 		res.json({ message: error });
-// 	}
-// });
+router.delete('/register/:userID', async (req, res) => {
+	try {
+		const deletedUser = await User.deleteOne({ _id: req.params.userID });
+		res.json(deletedUser);
+	} catch (error) {
+		res.json({ message: error });
+	}
+});
 module.exports = router;
